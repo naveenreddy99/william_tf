@@ -23,7 +23,7 @@ resource "aws_s3_bucket_public_access_block" "replica_bucket_public_access_block
 }
 
 resource "aws_s3_bucket_versioning" "replica_versioning" {
-  bucket = aws_s3_bucket.source_bucket.id
+  bucket = aws_s3_bucket.replica_bucket.id
 
   versioning_configuration {
     status = "Enabled"

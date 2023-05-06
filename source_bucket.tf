@@ -32,7 +32,7 @@ resource "aws_s3_bucket_versioning" "source_versioning" {
 resource "aws_s3_bucket_replication_configuration" "replication" {
   #provider = aws.central
   # Must have bucket versioning enabled first
-  depends_on = [aws_s3_bucket_versioning.source_versioning]
+  depends_on = [aws_s3_bucket_versioning.source_versioning, aws_s3_bucket_versioning.replica_versioning]
 
   role   = aws_iam_role.replication.arn
   bucket = aws_s3_bucket.source_bucket.id
@@ -40,9 +40,9 @@ resource "aws_s3_bucket_replication_configuration" "replication" {
   rule {
     id = "foobar"
 
-    filter {
-      prefix = "foo"
-    }
+    # filter {
+    #   prefix = "foo"
+    # }
 
     status = "Enabled"
 

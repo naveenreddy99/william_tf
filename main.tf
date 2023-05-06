@@ -51,7 +51,6 @@ resource "aws_instance" "ec2" {
   tags = var.ec2_settings["tags"]
 }
 
-
 data "aws_iam_policy_document" "assume_role" {
   statement {
     effect = "Allow"
@@ -108,6 +107,7 @@ data "aws_iam_policy_document" "replication" {
 }
 
 
+### SQS #####
 resource "aws_sqs_queue" "queue" {
   name                      = "example-queue"
   delay_seconds             = 90
@@ -119,3 +119,59 @@ resource "aws_sqs_queue" "queue" {
     Environment = "production"
   }
 }
+
+/* Lambda Execution Role Creation */
+resource "aws_iam_role" "LambdaExecutionRole" {
+  name = var.lambda_execution_role_name
+
+  # Terraform's "jsonencode" function converts a
+  # Terraform expression result to valid JSON syntax.
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Action = "sts:AssumeRole"
+        Effect = "Allow"
+        Sid    = ""
+        Principal = {
+          Service = "lambda.amazonaws.com"
+        }
+      },
+    ]
+  })
+}
+
+/* LAMBDA FUNCTION */
+data "archive_file" "lambda_zip_file" {
+  type            = "zip"
+  source_file     = "./lambda_function.py"
+  output_path     = "./lambda_function.py.zip"
+}
+
+resource "aws_lambda_function" "lambda" {
+  #filename = "lambda_function.py.zip"
+  filename          = "lambda_function.py.zip"
+  source_code_hash  = filebase64sha256(data.archive_file.lambda_zip_file.output_path)
+  function_name     = var.function_name
+  role              = aws_iam_role.LambdaExecutionRole.arn
+  handler           = "lambda_function.lambda_handler"
+
+  # The filebase64sha256() function is available in Terraform 0.11.12 and later
+  # For Terraform 0.11.11 and earlier, use the base64sha256() function and the file() function:
+  # source_code_hash = "${base64sha256(file("lambda_function_payload.zip"))}"
+  #source_code_hash = filebase64sha256("lambda_function_payload.zip")
+
+  runtime = "python3.9"
+  memory_size = 128
+  timeout = 120
+}
+
+# /* Add S3 - Glue Permission */
+# resource "aws_lambda_permission" "Invoke" {
+#   action        = "lambda:InvokeFunction"
+#   function_name = var.function_name
+#   principal     = "s3.amazonaws.com"
+#   source_arn    = aws_s3_bucket.glue_bucket.arn
+#   #source_account = "978911422874"
+#   statement_id  = "AllowExecutionFromS3Bucket"
+# }

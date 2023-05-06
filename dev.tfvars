@@ -1,7 +1,8 @@
 region = "us-east-1"
-source_bucket_name = "testing_source123"
-replica_bucket_name = "replica_source123"
-
+source_bucket_name = "testing1source123"
+replica_bucket_name = "replica1source123"
+function_name = "test111"
+lambda_execution_role_name = "lambda_execution_role"
 
 ec2_settings = {
     ami                         = "ami-0cff7528ff583bf9a"
@@ -9,7 +10,7 @@ ec2_settings = {
     associate_public_ip_address = true
     key_name                    = "devops"
     vpc_id                      = "vpc-0271c459c930e8e54"
-    vpc_security_groups         = ["sg"]
+    vpc_security_groups         = ["sg-09c59ba701cf5046b"]
     subnet_id                   = "subnet-011edbedcc5deff88"
     availability_zone           = "us-east-1c"
     root_block_volume_size      = 10
