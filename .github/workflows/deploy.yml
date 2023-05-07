@@ -51,7 +51,7 @@ on:
   pull_request:
 
 env:
-  ENVIRONMENT: test
+  ENVIRONMENT: dev
 
 permissions:
   contents: read
