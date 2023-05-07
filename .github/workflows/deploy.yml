@@ -61,7 +61,7 @@ jobs:
   terraform:
     name: 'Terraform'
     runs-on: ubuntu-latest
-    environment: "$ENVIRONMENT"
+    environment: "${{ env.ENVIRONMENT }}"
 
     # Use the Bash shell regardless whether the GitHub Actions runner is ubuntu-latest, macos-latest, or windows-latest
     defaults:
@@ -97,7 +97,7 @@ jobs:
 
     # Initialize a new or existing Terraform working directory by creating initial files, loading any remote state, downloading modules, etc.
     - name: Terraform Init
-      run: terraform init -var-file="${{ env.ENVIRONMENT }}".tfvars -backend-config="${{ env.ENVIRONMENT }}"_backend.tfvars
+      run: terraform init -backend-config="${{ env.ENVIRONMENT }}".conf
       # terraform init -backend-config="${SERVER_ENV}.conf"
       # terraform plan -var-file="${SERVER_ENV}.tfvars" -input=false
       # terraform apply --auto-approve -var-file="${SERVER_ENV}.tfvars"
@@ -108,7 +108,7 @@ jobs:
 
     # Generates an execution plan for Terraform
     - name: Terraform Plan
-      run: terraform plan -var-file="${{ env.ENVIRONMENT }}" -input=false
+      run: terraform plan -var-file="${{ env.ENVIRONMENT }}".tfvars -input=false
 
     # Generates an execution plan for Terraform
     #- name: Terraform Unit Test
@@ -120,4 +120,4 @@ jobs:
       # Note: It is recommended to set up a required "strict" status check in your repository for "Terraform Cloud". See the documentation on "strict" required status checks for more information: https://help.github.com/en/github/administering-a-repository/types-of-required-status-checks
     - name: Terraform Apply
       if: github.ref == 'refs/heads/"main"' && github.event_name == 'push'
-      run: terraform apply -var-file="${{ env.ENVIRONMENT }}" -auto-approve -input=false
+      run: terraform apply -var-file="${{ env.ENVIRONMENT }}".tfvars -auto-approve -input=false
