@@ -1,10 +1,10 @@
 region = "us-east-1"
-source_bucket_name = "testing1source123"
-replica_bucket_name = "replica1source123"
-function_name = "test111"
-lambda_execution_role_name = "lambda_execution_role"
-sqs_name = "dev-sqs-queue"
-sqs_tags = { "Name" = "slds-dev-matillion-sqs"
+source_bucket_name = "testing1source123_prod"
+replica_bucket_name = "replica1_prod"
+function_name = "test111-prod"
+lambda_execution_role_name = "lambda_execution_role_prod"
+sqs_name = "prod-sqs-queue"
+sqs_tags = { "Name" = "slds-prod-matillion-sqs"
              "MH or SH" = "SH"
             }
 
@@ -18,6 +18,7 @@ ec2_settings = {
     subnet_id                   = "subnet-011edbedcc5deff88"
     availability_zone           = "us-east-1c"
     root_block_volume_size      = 10
+    userdata                    = "echo $SHELL"
     ports                       = [80, 443, 22]
     cidrs                       = ["0.0.0.0/0"]
     ebs_block_device = [
@@ -30,7 +31,7 @@ ec2_settings = {
                         }
                     ]
     tags = {
-        "Name" = "slds-dev-matillionserver"
+        "Name" = "slds-prod-matillionserver"
         "MH or SH" = "SH"
     }
 }

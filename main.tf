@@ -51,22 +51,24 @@ resource "aws_instance" "ec2" {
   tags = var.ec2_settings["tags"]
 }
 
-data "aws_iam_policy_document" "assume_role" {
-  statement {
-    effect = "Allow"
+# data "aws_iam_policy_document" "assume_role" {
+#   statement {
+#     effect = "Allow"
 
-    principals {
-      type        = "Service"
-      identifiers = ["s3.amazonaws.com"]
-    }
+#     principals {
+#       type        = "Service"
+#       identifiers = ["s3.amazonaws.com"]
+#     }
 
-    actions = ["sts:AssumeRole"]
-  }
-}
+#     actions = ["sts:AssumeRole"]
+#   }
+# }
+
+## ROLE & POLICY FOR S3 REPLICATION
 
 resource "aws_iam_role" "replication" {
   name               = "tf-iam-role-replication-12345"
-  assume_role_policy = data.aws_iam_policy_document.assume_role.json
+  assume_role_policy = data.aws_iam_policy_document.replication.json
 }
 
 data "aws_iam_policy_document" "replication" {
@@ -109,15 +111,13 @@ data "aws_iam_policy_document" "replication" {
 
 ### SQS #####
 resource "aws_sqs_queue" "queue" {
-  name                      = "example-queue"
+  name                      = var.sqs_name
   delay_seconds             = 90
   max_message_size          = 2048
   message_retention_seconds = 86400
   receive_wait_time_seconds = 10
 
-  tags = {
-    Environment = "production"
-  }
+  tags = var.sqs_tags
 }
 
 /* Lambda Execution Role Creation */
@@ -165,13 +165,3 @@ resource "aws_lambda_function" "lambda" {
   memory_size = 128
   timeout = 120
 }
-
-# /* Add S3 - Glue Permission */
-# resource "aws_lambda_permission" "Invoke" {
-#   action        = "lambda:InvokeFunction"
-#   function_name = var.function_name
-#   principal     = "s3.amazonaws.com"
-#   source_arn    = aws_s3_bucket.glue_bucket.arn
-#   #source_account = "978911422874"
-#   statement_id  = "AllowExecutionFromS3Bucket"
-# }
