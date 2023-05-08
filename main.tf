@@ -66,48 +66,67 @@ resource "aws_instance" "ec2" {
 
 ## ROLE & POLICY FOR S3 REPLICATION
 
-resource "aws_iam_role" "replication" {
-  name               = "tf-iam-role-replication-12345"
-  assume_role_policy = data.aws_iam_policy_document.replication.json
+# Create the IAM role for replication
+resource "aws_iam_role" "replication_role" {
+  name = "s3-replication-role"
+
+  assume_role_policy = <<EOF
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Principal": {
+        "Service": "s3.amazonaws.com"
+      },
+      "Action": "sts:AssumeRole"
+    }
+  ]
+}
+EOF
 }
 
-data "aws_iam_policy_document" "replication" {
-  statement {
-    effect = "Allow"
+# Create the IAM policy for replication
+resource "aws_iam_policy" "replication_policy" {
+  name        = "s3-replication-policy"
+  description = "Policy for S3 replication"
 
-    actions = [
-      "s3:GetReplicationConfiguration",
-      "s3:ListBucket",
-    ]
-
-    resources = [aws_s3_bucket.source_bucket.arn]
-  }
-
-  statement {
-    effect = "Allow"
-
-    actions = [
-      "s3:GetObjectVersionForReplication",
-      "s3:GetObjectVersionAcl",
-      "s3:GetObjectVersionTagging",
-    ]
-
-    resources = ["${aws_s3_bucket.source_bucket.arn}/*"]
-  }
-
-  statement {
-    effect = "Allow"
-
-    actions = [
-      "s3:ReplicateObject",
-      "s3:ReplicateDelete",
-      "s3:ReplicateTags",
-    ]
-
-    resources = ["${aws_s3_bucket.replica_bucket.arn}/*"]
-  }
+  policy = <<EOF
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Action": [
+        "s3:GetObjectVersion",
+        "s3:GetObjectVersionAcl"
+      ],
+      "Resource": [
+        "${aws_s3_bucket.source_bucket.arn}/*"
+      ]
+    },
+    {
+      "Effect": "Allow",
+      "Action": [
+        "s3:ReplicateObject",
+        "s3:ReplicateDelete",
+        "s3:ReplicateTags",
+        "s3:GetReplicationConfiguration"
+      ],
+      "Resource": [
+        "${aws_s3_bucket.replica_bucket.arn}/*"
+      ]
+    }
+  ]
+}
+EOF
 }
 
+# Attach the replication policy to the replication role
+resource "aws_iam_role_policy_attachment" "replication_policy_attachment" {
+  role       = aws_iam_role.replication_role.name
+  policy_arn = aws_iam_policy.replication_policy.arn
+}
 
 ### SQS #####
 resource "aws_sqs_queue" "queue" {
